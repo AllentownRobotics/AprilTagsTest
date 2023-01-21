@@ -112,18 +112,17 @@ def drawTags(image, tags,):
         dety1s = (corner2[1] + corner3[1])/2
         dety2s = (corner3[1] + corner4[1])/2
         
-        side1x = abs((corner1[0] - corner3[0]))
-        side1y = abs((corner3[1] - corner4[1]))
-        side2x = abs((corner3[0] - corner4[0]))
-        side2y = abs((corner3[1] - corner4[1]))
 
+        #distances x and y for sides
         y = abs((dety1s - dety2s))
         x = abs((detx1s - detx2s))
 
         cv.circle(image, (cross[0], cross[1]), 5, (0, 255, 0), 5)
 
+
+
         #use distance formula on top and botom of tag
-        if 400 > abs((dety1 - dety2)) > 25:
+        if 400 > abs((dety1 - dety2)) > 35:
             d = m.dist(dett, detb)
         else:
             d = -1
@@ -136,8 +135,6 @@ def drawTags(image, tags,):
             
             xd = abs((cross[0] - center[0]))
             yd = abs((cross[1] - center[1]))
-            print("xd: " + str(xd))
-            print("yd: " + str(yd))
             if x > xd > 0 and y > yd > 0:
                 aligned = 1
             elif x > xd > 0:
@@ -197,12 +194,27 @@ def drawTags(image, tags,):
                 cv.line(image, (corner4[0], corner4[1]),
                         (corner1[0], corner1[1]), (0, 0, 255), 2)
                 cv.putText(image, "ALIGNED VERTICAL", (0, 200),
-                        cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0 , 0), 2, cv.LINE_AA)
+                        cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255 , 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
-
+            
+            side1 = m.dist(corner1, corner3)
+            side2 = m.dist(corner2, corner4)
+            if side1 and side2 > 0:
+                    if side1 > side2:
+                        degree = (side1 /side2) * 90 - 90
+                        print(degree)
+                    elif side2 > side1:
+                        degree = (side2 /side1) * 90 - 90
+                        print(degree)
+                    elif side2 == side1: 
+                        degree = 0
+    
+            
             #make distane that is printed to screen rounded
             dishow = round(distance)
             #show distance from tags 
+            cv.putText(image, str(round(degree),), (0, 30),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
             cv.putText(image, str(dishow), (center[0] - 80, center[1] - 20),
                   cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             cv.putText(image, ("cm"), (center[0] - 80, center[1] - 0),

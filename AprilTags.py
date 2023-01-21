@@ -10,7 +10,7 @@ RED = '\033[0;31m'
 
 
 def Main():
-    print(""+RED)
+    print(RED + "")
     #value of input device
     inputDevice = 0
     inputWidth = 1080
@@ -80,14 +80,14 @@ def Main():
     input.release()
     cv.destroyAllWindows()
 
- 
+
 def drawTags(image, tags,):
     for tag in tags:
         #set variables of tags 
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
-        
+        cross = 460, 260
             
         focalLength = 859.5
         realWidth = 15.0
@@ -106,26 +106,100 @@ def drawTags(image, tags,):
         dety2 = (corner3[1] + corner4[1])/2
         dett = (0, int(dety1))
         detb = (0, int(dety2))
+        
+        detx1s = (corner2[0] + corner3[0])/2
+        detx2s = (corner3[0] + corner4[0])/2
+        dety1s = (corner2[1] + corner3[1])/2
+        dety2s = (corner3[1] + corner4[1])/2
+        
+        side1x = abs((corner1[0] - corner3[0]))
+        side1y = abs((corner3[1] - corner4[1]))
+        side2x = abs((corner3[0] - corner4[0]))
+        side2y = abs((corner3[1] - corner4[1]))
+
+        y = abs((dety1s - dety2s))
+        x = abs((detx1s - detx2s))
+
+        cv.circle(image, (cross[0], cross[1]), 5, (0, 255, 0), 5)
+
         #use distance formula on top and botom of tag
-        if 400 > (dety1 -dety2) > 20:
+        if 400 > abs((dety1 - dety2)) > 25:
             d = m.dist(dett, detb)
         else:
             d = -1
         
+
         #make loop for calculating distance when possible
         if d > 0:
             #use distance formula to use pixel width, real width and focal length to find distance
             cv.circle(image, (center[0], center[1]), 5, (255, 0, 255), 2)
+            
+            xd = abs((cross[0] - center[0]))
+            yd = abs((cross[1] - center[1]))
+            print("xd: " + str(xd))
+            print("yd: " + str(yd))
+            if x > xd > 0 and y > yd > 0:
+                aligned = 1
+            elif x > xd > 0:
+                aligned = 3
+            elif y > yd > 0:
+                aligned = 4
+            else:
+                aligned = 2
+                
+            cv.line(image, (cross[0], cross[1]), 
+                    (center[0], center[1]), (255, 255, 0,), 2)
+            
+            if aligned == 2:
+                cv.line(image, (corner1[0], corner1[1]),
+                        (corner2[0], corner2[1]), (255, 0, 0), 2)
+                cv.line(image, (corner2[0], corner2[1]),
+                        (corner3[0], corner3[1]), (255, 0, 0), 2)
+                cv.line(image, (corner3[0], corner3[1]),
+                        (corner4[0], corner4[1]), (0, 0, 255), 2)
+                cv.line(image, (corner4[0], corner4[1]),
+                        (corner1[0], corner1[1]), (0, 0, 255), 2)
+                distance = (realWidth * focalLength) / d
+                
+            if aligned == 1:
+                cv.line(image, (corner1[0], corner1[1]),
+                        (corner2[0], corner2[1]), (0, 255, 0), 2)
+                cv.line(image, (corner2[0], corner2[1]),
+                        (corner3[0], corner3[1]), (0, 255, 0), 2)
+                cv.line(image, (corner3[0], corner3[1]),
+                        (corner4[0], corner4[1]), (0, 255, 0), 2)
+                cv.line(image, (corner4[0], corner4[1]),
+                        (corner1[0], corner1[1]), (0, 255, 0), 2)
+                cv.putText(image, "ALIGNED", (0, 200),
+                           cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv.LINE_AA)
+                distance = (realWidth * focalLength) / d
+                
+            if aligned == 3:
+                cv.line(image, (corner1[0], corner1[1]),
+                        (corner2[0], corner2[1]), (255, 0, 0), 2)
+                cv.line(image, (corner2[0], corner2[1]),
+                        (corner3[0], corner3[1]), (0, 255, 0), 2)
+                cv.line(image, (corner3[0], corner3[1]),
+                        (corner4[0], corner4[1]), (0, 0, 255), 2)
+                cv.line(image, (corner4[0], corner4[1]),
+                        (corner1[0], corner1[1]), (0, 255, 0), 2)
+                cv.putText(image, "ALIGNED HORIZONTAL", (0, 200),
+                        cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0 , 0), 2, cv.LINE_AA)
+                distance = (realWidth * focalLength) / d
+                
+            if aligned == 4:
+                cv.line(image, (corner1[0], corner1[1]),
+                        (corner2[0], corner2[1]), (0, 255, 0), 2)
+                cv.line(image, (corner2[0], corner2[1]),
+                        (corner3[0], corner3[1]), (0, 0, 255), 2)
+                cv.line(image, (corner3[0], corner3[1]),
+                        (corner4[0], corner4[1]), (0, 255, 0), 2)
+                cv.line(image, (corner4[0], corner4[1]),
+                        (corner1[0], corner1[1]), (0, 0, 255), 2)
+                cv.putText(image, "ALIGNED VERTICAL", (0, 200),
+                        cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0 , 0), 2, cv.LINE_AA)
+                distance = (realWidth * focalLength) / d
 
-            cv.line(image, (corner1[0], corner1[1]),
-                    (corner2[0], corner2[1]), (255, 0, 0), 2)
-            cv.line(image, (corner2[0], corner2[1]),
-                    (corner3[0], corner3[1]), (255, 0, 0), 2)
-            cv.line(image, (corner3[0], corner3[1]),
-                    (corner4[0], corner4[1]), (0, 0, 255), 2)
-            cv.line(image, (corner4[0], corner4[1]),
-                    (corner1[0], corner1[1]), (0, 0, 255), 2)
-            distance = (realWidth * focalLength) / d
             #make distane that is printed to screen rounded
             dishow = round(distance)
             #show distance from tags 
@@ -136,7 +210,7 @@ def drawTags(image, tags,):
             #show exact measurement in console
             cv.putText(image, str(tagID), (center[0] - 10, center[1] - 10),
                    cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
-            print(distance)
+            #print(distance)
         else:
             break
         #put tag id on tags

@@ -19,13 +19,13 @@ def Main():
     #Family of april tags being detected
     families = 'tag16h5'
     #sensitivity for detection
-    nthreads = 30
+    nthreads = 15
     #low resolution input help
     quadDecimate = 0.0
     #blurring for easier processing in noisy images
-    quadSigma = 4
+    quadSigma = 3.85
     #edges snap to gradiants
-    refineEdges = 3
+    refineEdges = 1.5
     #helps with strange lighting
     decodeSharpening = -0.85
     debug = 0 
@@ -87,9 +87,9 @@ def drawTags(image, tags,):
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
-        cross = 460, 260
+        cross = 480, 270
             
-        focalLength = 859.5
+        focalLength = 850.5
         realWidth = 15.0
         
         #define corners and center of tag
@@ -133,19 +133,33 @@ def drawTags(image, tags,):
             #use distance formula to use pixel width, real width and focal length to find distance
             cv.circle(image, (center[0], center[1]), 5, (255, 0, 255), 2)
             
+            cv.circle(image, (corner1[0], corner1[1]), 5, (255, 0, 0), 2)
+            cv.circle(image, (corner2[0], corner2[1]), 5, (0, 255, 0), 2)
+            cv.circle(image, (corner3[0], corner3[1]), 5, (255, 0, 255), 2)
+            
             xd = abs((cross[0] - center[0]))
             yd = abs((cross[1] - center[1]))
-            if x > xd > 0 and y > yd > 0:
+            if x >= xd >= 0 and y >= yd >= 0:
                 aligned = 1
-            elif x > xd > 0:
+            elif x >= xd >= 0:
                 aligned = 3
-            elif y > yd > 0:
+            elif y >= yd >= 0:
                 aligned = 4
             else:
                 aligned = 2
                 
             cv.line(image, (cross[0], cross[1]), 
                     (center[0], center[1]), (255, 255, 0,), 2)
+            
+            if cross[0] > center[0]:
+                dx = cross[0] - center[0] 
+                left = 1
+            elif cross[0] < center[0]:
+                dx = center[0] - cross[0]
+                left = 2
+            else:
+                dx = 0
+                left = 3
             
             if aligned == 2:
                 cv.line(image, (corner1[0], corner1[1]),
@@ -157,8 +171,9 @@ def drawTags(image, tags,):
                 cv.line(image, (corner4[0], corner4[1]),
                         (corner1[0], corner1[1]), (0, 0, 255), 2)
                 distance = (realWidth * focalLength) / d
+               
                 
-            if aligned == 1:
+            elif aligned == 1:
                 cv.line(image, (corner1[0], corner1[1]),
                         (corner2[0], corner2[1]), (0, 255, 0), 2)
                 cv.line(image, (corner2[0], corner2[1]),
@@ -171,7 +186,7 @@ def drawTags(image, tags,):
                            cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
                 
-            if aligned == 3:
+            elif aligned == 3:
                 cv.line(image, (corner1[0], corner1[1]),
                         (corner2[0], corner2[1]), (255, 0, 0), 2)
                 cv.line(image, (corner2[0], corner2[1]),
@@ -184,7 +199,7 @@ def drawTags(image, tags,):
                         cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0 , 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
                 
-            if aligned == 4:
+            elif aligned == 4:
                 cv.line(image, (corner1[0], corner1[1]),
                         (corner2[0], corner2[1]), (0, 255, 0), 2)
                 cv.line(image, (corner2[0], corner2[1]),
@@ -196,32 +211,93 @@ def drawTags(image, tags,):
                 cv.putText(image, "ALIGNED VERTICAL", (0, 200),
                         cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255 , 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
+                
+            else:
+                distance = 0
+
+            side1 = m.dist(corner1, corner4) 
+            side2 = m.dist(corner2, corner3) 
+            side3 = m.dist(corner1, corner2)
+            side4 = m.dist(corner4, corner3)
+            hyp1 = np.sqrt(np.square(side1) + np.square(side3))
+            hyp2 = np.sqrt(np.square(side2) + np.square(side4))
             
-            side1 = m.dist(corner1, corner3)
-            side2 = m.dist(corner2, corner4)
-            if side1 and side2 > 0:
+            if side2 > 0 or side3 > 0:
+                scale = 15/side2
+                distancex = dx*scale
+            
+            dx = cross[0] - center[0]
+            
+            if side1 and side2 > 4:
                     if side1 > side2:
-                        degree = (side1 /side2) * 90 - 90
+                        angle_per_pix = 73/1080
+                        degree = (center[0] - 540) * angle_per_pix
+                        #print("side", (side1 + side2)/2)
+                        '''
+                        print("Side 1: ", side1)
+                        print("Side 2: ", side2)
+                        print("bottom", side4)
+                       '''
                         print(degree)
+                   
                     elif side2 > side1:
-                        degree = (side2 /side1) * 90 - 90
+                        angle_per_pix = 73/1080        
+                        degree = (center[0] - 540) * angle_per_pix
+                        
+                        #print("side", (side2+side1)/2)
+                        '''
+                        print("Side 1: ", side1)
+                        print("Side 2: ", side2)
+                        print("bottom", side4)
+                        '''
                         print(degree)
-                    elif side2 == side1: 
-                        degree = 0
-    
+                    else:  
+                        degree = 0  
             
-            #make distane that is printed to screen rounded
+            
+            
+           
+           #make distane that is printed to screen rounded
             dishow = round(distance)
             #show distance from tags 
-            cv.putText(image, str(round(degree),), (0, 30),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+            if left == 1 and distancex > 0:
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+                
+                cv.putText(image, ("cm left"), (0, 520),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+            elif left == 2 and distancex > 0:
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+                cv.putText(image, ("cm right"), (0, 520),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+                '''
+            if  -1.5 < degree < 1.5:
+                cv.putText(image, "alligned", (0, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
+                '''
+                
+            if  degree >= 0:
+                cv.putText(image, str(round(degree)), (0, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
+                cv.putText(image, "degrees right", (110, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
+            elif  degree <= 0:
+                cv.putText(image, str(round(degree)), (0, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
+                cv.putText(image, "degrees left", (110, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
+            else:             
+                cv.putText(image, str(np.around(degree, 0),), (0, 30),
+                cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
+                
             cv.putText(image, str(dishow), (center[0] - 80, center[1] - 20),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
+            cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             cv.putText(image, ("cm"), (center[0] - 80, center[1] - 0),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
+            cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #show exact measurement in console
             cv.putText(image, str(tagID), (center[0] - 10, center[1] - 10),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
+            cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #print(distance)
         else:
             break

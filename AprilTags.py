@@ -218,38 +218,37 @@ def drawTags(image, tags,):
             side1 = m.dist(corner1, corner4) 
             side2 = m.dist(corner2, corner3) 
             side3 = m.dist(corner1, corner2)
-            side4 = m.dist(corner4, corner3)
+            side4 = abs(m.dist(corner4, corner3))
             hyp1 = np.sqrt(np.square(side1) + np.square(side3))
             hyp2 = np.sqrt(np.square(side2) + np.square(side4))
             
-            if side2 > 0 or side3 > 0:
+            if side2 > 0:
                 scale = 15/side2
                 distancex = dx*scale
             
             dx = cross[0] - center[0]
             
             if side1 and side2 > 4:
-                    if side1 > side2:
-                        angle_per_pix = 73/1080
-                        degree = (center[0] - 540) * angle_per_pix
-                        #print("side", (side1 + side2)/2)
+                    if side1 > side2 and side4 > 0:
                         '''
-                        print("Side 1: ", side1)
-                        print("Side 2: ", side2)
-                        print("bottom", side4)
-                       '''
+                        angle_per_pix = 73/1080
+                        degree = (center[0] - 540) * angle_per_x
+                        '''
+                        #print("side", (side1 + side2)/2)
+                       
+                        degree = ((side2/side1)/2) * -180 + 180
+
                         print(degree)
                    
-                    elif side2 > side1:
-                        angle_per_pix = 73/1080        
-                        degree = (center[0] - 540) * angle_per_pix
+                    elif side2 > side1 and side4 > 0:
+                        '''
+                        angle_per_pix = 73/1080 
+                        '''                        
+                        degree = ((side1/side2)/2) * 180  - 180
                         
                         #print("side", (side2+side1)/2)
-                        '''
-                        print("Side 1: ", side1)
-                        print("Side 2: ", side2)
-                        print("bottom", side4)
-                        '''
+                        
+
                         print(degree)
                     else:  
                         degree = 0  

@@ -4,24 +4,22 @@ import numpy as np
 import cv2 as cv
 import math as m
 from pupil_apriltags import Detector
-import os
 
 RED = '\033[0;31m'
 
 
 def Main():
-    print(RED + "")
     #value of input device
     inputDevice = 0
-    inputWidth = 1200
-    inputHeight = 1920
+    inputWidth = 600
+    inputHeight = 1024
     
     #Family of april tags being detected
     families = 'tag16h5'
     #sensitivity for detection
     nthreads = 15
     #low resolution input help
-    quadDecimate = 0.0
+    quadDecimate = 4.0
     #blurring for easier processing in noisy images
     quadSigma = 3.85
     #edges snap to gradiants
@@ -87,7 +85,7 @@ def drawTags(image, tags,):
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
-        cross = 640, 370
+        cross = 317, 235
             
         focalLength = 850.5
         realWidth = 15.0
@@ -236,26 +234,19 @@ def drawTags(image, tags,):
                         '''
                         #print("side", (side1 + side2)/2)
                        
-                        degree = ((side2/side1)/2) * -180 + 180
-                        
-                        print("Side 1: ", side1)
-                        print("Side 2: ", side2)
-                        print("bottom", side4)
-                       
+                        degree = ((side2/side1)/2) * -180 + 90
+
                         print(degree)
                    
                     elif side2 > side1 and side4 > 0:
                         '''
                         angle_per_pix = 73/1080 
                         '''                        
-                        degree = ((side1/side2)/2) * 180  - 180
+                        degree = ((side1/side2)/2) * 180  - 90
                         
                         #print("side", (side2+side1)/2)
                         
-                        print("Side 1: ", side1)
-                        print("Side 2: ", side2)
-                        print("bottom", side4)
-                        
+
                         print(degree)
                     else:  
                         degree = 0  
@@ -267,15 +258,15 @@ def drawTags(image, tags,):
             dishow = round(distance)
             #show distance from tags 
             if left == 1 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 
-                cv.putText(image, ("cm left"), (0, 520),
+                cv.putText(image, ("cm left"), (0, 420),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
             elif left == 2 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
-                cv.putText(image, ("cm right"), (0, 520),
+                cv.putText(image, ("cm right"), (0, 420),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 '''
             if  -1.5 < degree < 1.5:

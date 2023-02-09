@@ -16,8 +16,7 @@ def Main():
 
     NetworkTables.getDefault()
     NetworkTables.initialize(server="172.22.11.2")
-    table = NetworkTables.getTable('SmartDashboard')
-    VisionTable = NetworkTables.getTable('Vision')
+    
     
 
 
@@ -95,6 +94,7 @@ def Main():
 
 def drawTags(image, tags,):
     for tag in tags:
+        degree = int
         #set variables of tags 
         tagID = tag.tag_id
         center = tag.center
@@ -104,6 +104,9 @@ def drawTags(image, tags,):
         focalLength = 850.5
         realWidth = 15.0
         
+        table = NetworkTables.getTable('SmartDashboard')
+        VisionTable = NetworkTables.getTable('Vision')
+    
         #define corners and center of tag
         center = (int(center[0]), int(center[1]))
         corner1 = (int(corners[0][0]), int(corners[0][1]))
@@ -345,9 +348,9 @@ def drawTags(image, tags,):
             with open ("distancex.txt", "a") as f:
                 f.write(str(distancex) + "\n")
             
-            VisionTable.PutNumber("Distnace x:", distancex)
-            VisionTable.PutNumber("Distnace:", distance)
-            VisionTable.PutNumber("Degrees", degree)
+            table.putNumber("Distnace x:", distancex)
+            table.putNumber("Distnace:", distance)
+            table.putNumber("Degrees", degree)
             
         else:
             break

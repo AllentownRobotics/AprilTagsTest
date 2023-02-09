@@ -15,13 +15,10 @@ def Main():
     NetworkTables.getDefault()
     NetworkTables.initialize(server="172.22.11.2")
     
-    
     #value of input device
     inputDevice = 0
     inputWidth = 600
     inputHeight = 1024
-    table = NetworkTables.getTable('SmartDashboard')
-    VisionTable = NetworkTables.getTable('Vision')
     
     #Family of april tags being detected
     families = 'tag16h5'
@@ -309,8 +306,8 @@ def drawTags(image, tags,):
             cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #print(distance)
                     
-            table.putNumber("Distnace x:", distancex)
-            table.putNumber("Distnace:", distance)
+            table.putNumber("Distnace x", distancex)
+            table.putNumber("Distnace", distance)
             table.putNumber("Degrees", degree)
         else:
             break

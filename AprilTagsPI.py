@@ -99,7 +99,7 @@ def drawTags(image, tags,):
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
-        cross = 480, 278
+        cross = 317, 235
             
         focalLength = 850.5
         realWidth = 15.0
@@ -296,15 +296,15 @@ def drawTags(image, tags,):
             dishow = round(distance)
             #show distance from tags 
             if left == 1 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 
-                cv.putText(image, ("cm left"), (0, 520),
+                cv.putText(image, ("cm left"), (0, 420),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
             elif left == 2 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
-                cv.putText(image, ("cm right"), (0, 520),
+                cv.putText(image, ("cm right"), (0, 420),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 '''
             if  -1.5 < degree < 1.5:

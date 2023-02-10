@@ -4,17 +4,23 @@ import numpy as np
 import cv2 as cv
 import math as m
 from pupil_apriltags import Detector
+import os
+import time
 from networktables import NetworkTablesInstance, NetworkTables
+import sys
 
 RED = '\033[0;31m'
 
 
 def Main():
 
-
     NetworkTables.getDefault()
     NetworkTables.initialize(server="172.22.11.2")
     
+    
+
+
+    print(RED + "")
     #value of input device
     inputDevice = 0
     inputWidth = 600
@@ -57,7 +63,7 @@ def Main():
         #image is set to input
         ret, image = input.read()
         if not ret:
-            print("Input can not be accessed")
+            #print("Input can not be accessed")
             break
         #make copy of image
         debugImage = copy.deepcopy(image)
@@ -71,6 +77,7 @@ def Main():
         tag_size=None,
         )
         
+
         #add tags to shown image
 
         debugImage = drawTags(debugImage, tags)
@@ -87,18 +94,19 @@ def Main():
 
 def drawTags(image, tags,):
     for tag in tags:
+        degree = int
         #set variables of tags 
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
-        cross = 317, 235
+        cross = 480, 278
+            
+        focalLength = 850.5
+        realWidth = 15.0
         
         table = NetworkTables.getTable('SmartDashboard')
         VisionTable = NetworkTables.getTable('Vision')
     
-        focalLength = 850.5
-        realWidth = 15.0
-        
         #define corners and center of tag
         center = (int(center[0]), int(center[1]))
         corner1 = (int(corners[0][0]), int(corners[0][1]))
@@ -148,10 +156,13 @@ def drawTags(image, tags,):
             yd = abs((cross[1] - center[1]))
             if x >= xd >= 0 and y >= yd >= 0:
                 aligned = 1
+                allignment = "alligned fully"
             elif x >= xd >= 0:
                 aligned = 3
+                allignment = "alligned horizontally"
             elif y >= yd >= 0:
                 aligned = 4
+                allignment = "alligned vertically"
             else:
                 aligned = 2
                 
@@ -221,7 +232,10 @@ def drawTags(image, tags,):
                 
             else:
                 distance = 0
+            
+                    
 
+            
             side1 = m.dist(corner1, corner4) 
             side2 = m.dist(corner2, corner3) 
             side3 = m.dist(corner1, corner2)
@@ -243,39 +257,54 @@ def drawTags(image, tags,):
                         '''
                         #print("side", (side1 + side2)/2)
                        
-                        degree = ((side2/side1)/2) * -180 + 90
-
-                        print(degree)
+                        degree = ((side2/side1)/2) * 360 - 180
+                        
+                        #print("Side 1: ", side1)
+                        #print("Side 2: ", side2)
+                        #print("bottom", side4)
+                       
+                        #print(degree)
                    
                     elif side2 > side1 and side4 > 0:
                         '''
                         angle_per_pix = 73/1080 
                         '''                        
-                        degree = ((side1/side2)/2) * 180  - 90
+                        degree = ((side1/side2)/2) * -360  + 180
                         
                         #print("side", (side2+side1)/2)
                         
-
-                        print(degree)
+                        #print("Side 1: ", side1)
+                        #print("Side 2: ", side2)
+                        #print("bottom", side4)
+                        
+                        #print(degree)
                     else:  
                         degree = 0  
-            
-            
-            
-           
+            '''
+            plt.plot([distance, distancex], 'ro')
+            plt.plot([d, d],[dx, dx], '-')
+            plt.grid()
+            plt.xlim(-200, 200)
+            plt.ylim(-200, 200)
+            plt.show()
+            '''
+
+                
+                
+                    
            #make distane that is printed to screen rounded
             dishow = round(distance)
             #show distance from tags 
             if left == 1 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 
-                cv.putText(image, ("cm left"), (0, 420),
+                cv.putText(image, ("cm left"), (0, 520),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
             elif left == 2 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
-                cv.putText(image, ("cm right"), (0, 420),
+                cv.putText(image, ("cm right"), (0, 520),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 '''
             if  -1.5 < degree < 1.5:
@@ -305,15 +334,33 @@ def drawTags(image, tags,):
             cv.putText(image, str(tagID), (center[0] - 10, center[1] - 10),
             cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #print(distance)
-                    
-            table.putNumber("Distnace x", distancex)
-            table.putNumber("Distnace", distance)
+            
+            filename = ("data.txt");
+            with open (filename, "a") as f:
+                f.write("distance : " + str(distance) + "\n")
+                f.write("distancex : " + str(distancex) + "\n")
+                f.write("degrees : " + str(degree) + "\n")
+
+            with open ("distance.txt", "a") as f:
+                f.write(str(distance) + "\n")
+
+
+            with open ("distancex.txt", "a") as f:
+                f.write(str(distancex) + "\n")
+            
+            table.putNumber("Distnace x:", distancex)
+            table.putNumber("Distnace:", distance)
             table.putNumber("Degrees", degree)
+            p = table.getEntry("Degrees")
+            print(str(p))
+            
         else:
             break
         #put tag id on tags
         
     return image
     return distance 
-    
+    return degree
+    return distancex
+   
 Main()

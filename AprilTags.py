@@ -333,7 +333,7 @@ def drawTags(image, tags,):
             #show exact measurement in console
             cv.putText(image, str(tagID), (center[0] - 10, center[1] - 10),
             cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
-            print(distance)
+            #print(distance)
             
             filename = ("data.txt");
             with open (filename, "a") as f:
@@ -351,6 +351,8 @@ def drawTags(image, tags,):
             table.putNumber("Distnace x:", distancex)
             table.putNumber("Distnace:", distance)
             table.putNumber("Degrees", degree)
+            p = table.getEntry("Degrees")
+            print(str(p))
             
         else:
             break

@@ -13,13 +13,10 @@ RED = '\033[0;31m'
 
 
 def Main():
-
+    #create network tables
     NetworkTables.getDefault()
     NetworkTables.initialize(server="172.22.11.2")
-    
-    
-
-
+    #make terminal red
     print(RED + "")
     #value of input device
     inputDevice = 0
@@ -63,7 +60,7 @@ def Main():
         #image is set to input
         ret, image = input.read()
         if not ret:
-            #print("Input can not be accessed")
+            print("Input can not be accessed")
             break
         #make copy of image
         debugImage = copy.deepcopy(image)
@@ -78,32 +75,40 @@ def Main():
         )
         
 
-        #add tags to shown image
-
+        #add tags to  image
         debugImage = drawTags(debugImage, tags)
-   
+        
+        #set key to close program (escape)
         key = cv.waitKey(1)
         if key == 27:  
             break
         
-        
+        #show window
         cv.imshow('april tags', debugImage)
+    #closes program
     input.release()
     cv.destroyAllWindows()
 
 
 def drawTags(image, tags,):
+    #when tag is detected
     for tag in tags:
-        degree = int
+        #make degree varaible (will be used later)
+        degree = 0
         #set variables of tags 
         tagID = tag.tag_id
         center = tag.center
         corners = tag.corners
+        #sets center of canvas
+        #        x    y
         cross = 317, 235
-            
+           
+        #focal length of camera
         focalLength = 850.5
+        #width of april tag
         realWidth = 15.0
         
+        #defines tables for network tales
         table = NetworkTables.getTable('SmartDashboard')
         VisionTable = NetworkTables.getTable('Vision')
     
@@ -137,6 +142,7 @@ def drawTags(image, tags,):
 
 
         #use distance formula on top and botom of tag
+        #if statement gets rid of a lot of random artifact detection
         if 400 > abs((dety1 - dety2)) > 35:
             d = m.dist(dett, detb)
         else:
@@ -152,20 +158,25 @@ def drawTags(image, tags,):
             cv.circle(image, (corner2[0], corner2[1]), 5, (0, 255, 0), 2)
             cv.circle(image, (corner3[0], corner3[1]), 5, (255, 0, 255), 2)
             
+            #makes variables used for allignment
             xd = abs((cross[0] - center[0]))
             yd = abs((cross[1] - center[1]))
+            #if tags coordinates are in between both the x an y axis's the tag is fully allgined
             if x >= xd >= 0 and y >= yd >= 0:
                 aligned = 1
                 allignment = "alligned fully"
+            #if the x coordinates are on the x axis for the center it is alligned horizontally
             elif x >= xd >= 0:
                 aligned = 3
                 allignment = "alligned horizontally"
+            #same thing but with y axis
             elif y >= yd >= 0:
                 aligned = 4
                 allignment = "alligned vertically"
             else:
                 aligned = 2
-                
+            
+            #draw line from center of canvas to center of tag
             cv.line(image, (cross[0], cross[1]), 
                     (center[0], center[1]), (255, 255, 0,), 2)
             
@@ -235,7 +246,7 @@ def drawTags(image, tags,):
             
                     
 
-            
+            #defines sides and hypotenouses of the tag
             side1 = m.dist(corner1, corner4) 
             side2 = m.dist(corner2, corner3) 
             side3 = m.dist(corner1, corner2)
@@ -243,12 +254,14 @@ def drawTags(image, tags,):
             hyp1 = np.sqrt(np.square(side1) + np.square(side3))
             hyp2 = np.sqrt(np.square(side2) + np.square(side4))
             
+            #define how far the center of tag is from center of camera horizontally
             if side2 > 0:
                 scale = 15/side2
                 distancex = dx*scale
             
             dx = cross[0] - center[0]
             
+            #calcuate degrees of rotation the tag is relative to the camera or the camera relative to the tag.
             if side1 and side2 > 4:
                     if side1 > side2 and side4 > 0:
                         '''
@@ -294,24 +307,24 @@ def drawTags(image, tags,):
                     
            #make distane that is printed to screen rounded
             dishow = round(distance)
-            #show distance from tags 
+            #show distance from tags horizontally on display 
             if left == 1 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 
-                cv.putText(image, ("cm left"), (0, 420),
+                cv.putText(image, ("cm left"), (0, 520),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
             elif left == 2 and distancex > 0:
-                cv.putText(image, str(np.around(distancex, 2)), (0, 400),
+                cv.putText(image, str(np.around(distancex, 2)), (0, 500),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
-                cv.putText(image, ("cm right"), (0, 420),
+                cv.putText(image, ("cm right"), (0, 520),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)
                 '''
             if  -1.5 < degree < 1.5:
                 cv.putText(image, "alligned", (0, 30),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
                 '''
-                
+            #show degrees of rotatoin on canvas
             if  degree >= 0:
                 cv.putText(image, str(round(degree)), (0, 30),
                 cv.FONT_HERSHEY_SIMPLEX, 0.95, (255, 0, 255), 4, cv.LINE_AA)  
@@ -335,12 +348,13 @@ def drawTags(image, tags,):
             cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #print(distance)
             
+            #write the gathered data onto a text document
             filename = ("data.txt");
             with open (filename, "a") as f:
                 f.write("distance : " + str(distance) + "\n")
                 f.write("distancex : " + str(distancex) + "\n")
                 f.write("degrees : " + str(degree) + "\n")
-
+            
             with open ("distance.txt", "a") as f:
                 f.write(str(distance) + "\n")
 
@@ -348,6 +362,7 @@ def drawTags(image, tags,):
             with open ("distancex.txt", "a") as f:
                 f.write(str(distancex) + "\n")
             
+            #put important gathered data onto a network table so it can be used in robot code
             table.putNumber("Distnace x:", distancex)
             table.putNumber("Distnace:", distance)
             table.putNumber("Degrees", degree)

@@ -17,12 +17,9 @@ def Main():
     NetworkTables.getDefault()
     NetworkTables.initialize(server="172.22.11.2")
     
-    
-
-
     print(RED + "")
     #value of input device
-    inputDevice = 0
+    inputDevice = 1
     inputWidth = 1200
     inputHeight = 1920
     
@@ -31,13 +28,13 @@ def Main():
     #sensitivity for detection
     nthreads = 15
     #low resolution input help
-    quadDecimate = 2.0
+    quadDecimate = 4.0
     #blurring for easier processing in noisy images
     quadSigma = 4.0
     #edges snap to gradiants
-    refineEdges = 5.5
+    refineEdges = 2.5
     #helps with strange lighting
-    decodeSharpening = 0
+    decodeSharpening = 0.5
     debug = 0 
     
     #set video capture
@@ -94,7 +91,7 @@ def Main():
 
 def drawTags(image, tags,):
     for tag in tags:
-        degree = int
+        degree = 0
         #set variables of tags 
         tagID = tag.tag_id
         center = tag.center
@@ -127,11 +124,21 @@ def drawTags(image, tags,):
         dety1s = (corner2[1] + corner3[1])/2
         dety2s = (corner3[1] + corner4[1])/2
         
+                    
+        side1 = m.dist(corner1, corner4) 
+        side2 = m.dist(corner2, corner3) 
+        side3 = m.dist(corner1, corner2)
+        side4 = abs(m.dist(corner4, corner3))
+        hyp1 = np.sqrt(np.square(side1) + np.square(side3))
+        hyp2 = np.sqrt(np.square(side2) + np.square(side4))
+            
 
         #distances x and y for sides
         y = abs((dety1s - dety2s))
         x = abs((detx1s - detx2s))
-
+        
+        
+        
         cv.circle(image, (cross[0], cross[1]), 5, (0, 255, 0), 5)
 
 
@@ -144,7 +151,7 @@ def drawTags(image, tags,):
         
 
         #make loop for calculating distance when possible
-        if d > 0:
+        if d > 0 and side2 > side1/1.3 and side1 > side2/1.3 and side3 > side4/1.3 and side4 > side3/1.3:
             #use distance formula to use pixel width, real width and focal length to find distance
             cv.circle(image, (center[0], center[1]), 5, (255, 0, 255), 2)
             
@@ -180,52 +187,21 @@ def drawTags(image, tags,):
                 left = 3
             
             if aligned == 2:
-                cv.line(image, (corner1[0], corner1[1]),
-                        (corner2[0], corner2[1]), (255, 0, 0), 2)
-                cv.line(image, (corner2[0], corner2[1]),
-                        (corner3[0], corner3[1]), (255, 0, 0), 2)
-                cv.line(image, (corner3[0], corner3[1]),
-                        (corner4[0], corner4[1]), (0, 0, 255), 2)
-                cv.line(image, (corner4[0], corner4[1]),
-                        (corner1[0], corner1[1]), (0, 0, 255), 2)
                 distance = (realWidth * focalLength) / d
                
                 
             elif aligned == 1:
-                cv.line(image, (corner1[0], corner1[1]),
-                        (corner2[0], corner2[1]), (0, 255, 0), 2)
-                cv.line(image, (corner2[0], corner2[1]),
-                        (corner3[0], corner3[1]), (0, 255, 0), 2)
-                cv.line(image, (corner3[0], corner3[1]),
-                        (corner4[0], corner4[1]), (0, 255, 0), 2)
-                cv.line(image, (corner4[0], corner4[1]),
-                        (corner1[0], corner1[1]), (0, 255, 0), 2)
                 cv.putText(image, "ALIGNED", (0, 200),
                            cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
                 
             elif aligned == 3:
-                cv.line(image, (corner1[0], corner1[1]),
-                        (corner2[0], corner2[1]), (255, 0, 0), 2)
-                cv.line(image, (corner2[0], corner2[1]),
-                        (corner3[0], corner3[1]), (0, 255, 0), 2)
-                cv.line(image, (corner3[0], corner3[1]),
-                        (corner4[0], corner4[1]), (0, 0, 255), 2)
-                cv.line(image, (corner4[0], corner4[1]),
-                        (corner1[0], corner1[1]), (0, 255, 0), 2)
                 cv.putText(image, "ALIGNED HORIZONTAL", (0, 200),
                         cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0 , 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
                 
             elif aligned == 4:
-                cv.line(image, (corner1[0], corner1[1]),
-                        (corner2[0], corner2[1]), (0, 255, 0), 2)
-                cv.line(image, (corner2[0], corner2[1]),
-                        (corner3[0], corner3[1]), (0, 0, 255), 2)
-                cv.line(image, (corner3[0], corner3[1]),
-                        (corner4[0], corner4[1]), (0, 255, 0), 2)
-                cv.line(image, (corner4[0], corner4[1]),
-                        (corner1[0], corner1[1]), (0, 0, 255), 2)
+
                 cv.putText(image, "ALIGNED VERTICAL", (0, 200),
                         cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255 , 0), 2, cv.LINE_AA)
                 distance = (realWidth * focalLength) / d
@@ -233,22 +209,24 @@ def drawTags(image, tags,):
             else:
                 distance = 0
             
+            cv.line(image, (corner1[0], corner1[1]),
+                   (corner2[0], corner2[1]), (0, 255, 0), 2)
+            cv.line(image, (corner2[0], corner2[1]),
+                    (corner3[0], corner3[1]), (0, 0, 255), 2)
+            cv.line(image, (corner3[0], corner3[1]),
+                    (corner4[0], corner4[1]), (0, 255, 0), 2)
+            cv.line(image, (corner4[0], corner4[1]),
+                   (corner1[0], corner1[1]), (0, 0, 255), 2)
                     
 
-            
-            side1 = m.dist(corner1, corner4) 
-            side2 = m.dist(corner2, corner3) 
-            side3 = m.dist(corner1, corner2)
-            side4 = abs(m.dist(corner4, corner3))
-            hyp1 = np.sqrt(np.square(side1) + np.square(side3))
-            hyp2 = np.sqrt(np.square(side2) + np.square(side4))
+
+            dx = cross[0] - center[0]
             
             if side2 > 0:
                 scale = 15/side2
                 distancex = dx*scale
             
-            dx = cross[0] - center[0]
-            
+
             if side1 and side2 > 4:
                     if side1 > side2 and side4 > 0:
                         '''
@@ -288,10 +266,21 @@ def drawTags(image, tags,):
             plt.ylim(-200, 200)
             plt.show()
             '''
-
-                
-                
-                    
+            '''
+            ax = corner1[0] + x * np.cos(degree)
+            ay = corner1[1] + x * np.sin(degree)
+            
+            if side2 > side1:                    
+                fx = int(ax)
+                fy = int(corner1[1] - ay)
+                cv.line(image, (corner1[0], corner1[1]),
+                        (corner1[0] - fx, corner1[1] - fy), (0, 0, 255), 2)
+            else:
+                fx= int(ax)
+                fy = int(ay)
+                cv.line(image, (corner1[0], corner1[1]),
+                 (fx, fy), (0, 0, 255), 2)
+            '''
            #make distane that is printed to screen rounded
             dishow = round(distance)
             #show distance from tags 
@@ -334,7 +323,7 @@ def drawTags(image, tags,):
             cv.putText(image, str(tagID), (center[0] - 10, center[1] - 10),
             cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2, cv.LINE_AA)
             #print(distance)
-            
+            '''
             filename = ("data.txt");
             with open (filename, "a") as f:
                 f.write("distance : " + str(distance) + "\n")
@@ -342,18 +331,20 @@ def drawTags(image, tags,):
                 f.write("degrees : " + str(degree) + "\n")
 
             with open ("distance.txt", "a") as f:
-                f.write(str(distance) + "\n")
+                f.truncate("distance.txt")
+                f.write(str(distance))# + "\n")
 
 
             with open ("distancex.txt", "a") as f:
-                f.write(str(distancex) + "\n")
+                f.truncate("distancex.txt")
+                f.write(str(distancex))# + "\n")
             
             table.putNumber("Distnace x:", distancex)
             table.putNumber("Distnace:", distance)
             table.putNumber("Degrees", degree)
             p = table.getEntry("Degrees")
             print(str(p))
-            
+            '''
         else:
             break
         #put tag id on tags
